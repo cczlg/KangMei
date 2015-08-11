@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="order_flag">
+        <item>订货</item>
+        <item>换货</item>
+        <item>退货</item>
+        <item>赠送</item>
+        <item>补货</item>
+    </string-array>
+</resources>

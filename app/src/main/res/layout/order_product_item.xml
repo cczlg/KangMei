@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
+    android:background="@layout/border"
+    android:orientation="vertical" >
+
+	<!-- com.weirui.kangmei.KMImageView
+	    android:id="@+id/ItemImage"
+	    android:layout_width="match_parent"
+	    android:layout_height="match_parent"
+	    android:layout_centerHorizontal="true" /-->
+
+	<TextView
+	    android:id="@+id/txtProduct"
+	    android:layout_width="wrap_content"
+	    android:layout_height="wrap_content"
+	    android:layout_gravity="center"
+	     />
+	<TextView
+	    android:id="@+id/txtPrice"
+	    android:layout_width="wrap_content"
+	    android:layout_height="wrap_content"
+	    android:layout_gravity="center"
+	     />
+	
+	<Spinner
+	    android:id="@+id/spanFlag"
+	    android:layout_width="wrap_content"
+	    android:layout_height="wrap_content"
+	    android:layout_weight="1"
+	    android:entries="@array/order_flag" />
+	
+	<EditText
+	    android:id="@+id/txtQuantity"
+	    android:layout_width="wrap_content"
+	    android:layout_height="wrap_content"
+	    android:layout_weight="1"
+	    android:ems="10"
+	    android:imeOptions="actionDone"
+	    android:inputType="number" >
+
+	    <requestFocus />
+	</EditText>
+
+	
+</LinearLayout>

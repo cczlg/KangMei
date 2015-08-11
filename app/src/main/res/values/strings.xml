@@ -1,0 +1,45 @@
+<resources>
+
+    <string name="dummy_button">Dummy Button</string>
+    <string name="dummy_content">DUMMY\nCONTENT</string>
+
+    <string name="app_name">几米订单</string>
+
+    <string name="title_activity_main">几米订单</string>
+    <string name="title_activity_order">几米订单&#8212;订单</string>
+    <string name="title_activity_customer">几米订单&#8212;客户</string>
+    <string name="title_activity_product">几米订单&#8212;产品</string>
+    <string name="title_activity_config">几米订单&#8212;设置</string>
+    <string name="menu_config">设置</string>
+    <string name="menu_product">产品维护</string>
+    <string name="menu_customer">客户维护</string>
+    <string name="menu_new">新建</string>
+    <string name="menu_modify">修改</string>
+    <string name="menu_delete">删除</string>
+
+    <string name="location">位置</string>
+    <string name="cant_read_folder">文件夹无法读取!</string>
+    <string name="nnew">New</string>
+    <string name="select">选择</string>
+    <string name="file_name">文件名:</string>
+    <string name="cancel">取消</string>
+    <string name="create">保存</string>
+    <string name="ok">确定</string>
+
+    <string name="no_data">没有数据</string>
+    <string name="err">错误</string>
+    <string name="err_no_sdcard">无法加载SD卡,程序无法启动</string>
+    <string name="err_cant_create_working_path">无法创建工作目录,程序无法启动</string>
+    <string name="path_excel">/kangmei/excel/</string>
+    <string name="path_image">/kangmei/image/</string>
+    <string name="path_db">/kangmei/db/</string>
+    <string name="product_name">产品名称：</string>
+    <string name="product_purchase_price">进价：</string>
+    <string name="product_price">单价：</string>
+    <string name="product_image_path">图片名：</string>
+    <string name="choose_image">选择图片</string>
+    <string name="confirm_delete">确定要删除这条记录？</string>
+    <string name="warning">警告</string>
+    <string name="success">操作成功</string>
+    <string name="salesman_first">请先设置业务员信息</string>
+</resources>

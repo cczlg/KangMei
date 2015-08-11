@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/child"
+    android:layout_width="match_parent"
+    android:layout_height="80dip"
+    android:orientation="horizontal" >
+
+    <TextView
+        android:id="@+id/txtId"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:visibility="gone" />
+
+    <TextView
+        android:id="@+id/txtProduct"
+        android:layout_width="wrap_content"
+        android:layout_height="60dip"
+        android:paddingLeft="45dip"
+        android:text="产品1"
+        />
+
+    <TextView
+        android:id="@+id/txtQuantity"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:gravity="right"
+        android:paddingLeft="15dip"
+        android:text="5"
+       />
+
+    <TextView
+        android:layout_width="10dip"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:text="X"
+        />
+
+    <TextView
+        android:id="@+id/txtPrice"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:gravity="right"
+        android:paddingRight="15dip"
+        android:text="7.8"
+        />
+
+    <TextView
+        android:id="@+id/txtSubtotal"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:gravity="right"
+        android:paddingRight="15dip"
+        android:text="39.00"
+        />
+
+</LinearLayout>

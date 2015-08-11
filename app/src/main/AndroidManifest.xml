@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="com.edmond.kangmei" >
+
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+
+    <application
+        android:allowBackup="true"
+        android:icon="@drawable/jm_icon"
+        android:label="@string/app_name"
+        android:theme="@style/AppTheme"
+        android:name="com.edmond.jimi.KangmeiApplication">
+        <!--<activity-->
+            <!--android:name=".KangMeiActivity"-->
+            <!--android:configChanges="orientation|keyboardHidden|screenSize"-->
+            <!--android:label="@string/app_name"-->
+            <!--android:theme="@style/FullscreenTheme" >-->
+            <!--<intent-filter>-->
+                <!--<action android:name="android.intent.action.MAIN" />-->
+
+                <!--<category android:name="android.intent.category.LAUNCHER" />-->
+            <!--</intent-filter>-->
+        <!--</activity>-->
+
+        <activity
+            android:name="com.edmond.jimi.activity.MainActivity"
+            android:label="@string/title_activity_main"
+            android:screenOrientation="portrait" >
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+
+        <activity
+            android:name="com.edmond.jimi.activity.OrderActivity"
+            android:configChanges="orientation|keyboardHidden"
+            android:screenOrientation="portrait"
+            android:label="@string/title_activity_order" />
+        <activity
+            android:name="com.edmond.jimi.activity.CustomerActivity"
+            android:configChanges="orientation|keyboardHidden"
+            android:screenOrientation="portrait"
+            android:label="@string/title_activity_customer"/>
+        <activity
+            android:name="com.edmond.jimi.activity.ProductActivity"
+            android:configChanges="orientation|keyboardHidden"
+            android:screenOrientation="portrait"
+            android:label="@string/title_activity_product"/>
+        <activity
+            android:name="com.edmond.jimi.activity.CustomerDetailActivity"
+            android:configChanges="orientation|keyboardHidden"
+            android:screenOrientation="portrait"
+            android:label="@string/title_activity_customer"/>
+        <activity
+            android:name="com.edmond.jimi.activity.ProductDetailActivity"
+            android:configChanges="orientation|keyboardHidden"
+            android:screenOrientation="portrait"
+            android:label="@string/title_activity_product"/>
+        <activity
+            android:name="com.edmond.jimi.activity.ConfigActivity"
+            android:configChanges="orientation|keyboardHidden"
+            android:screenOrientation="portrait"
+            android:label="@string/title_activity_config"/>
+        <activity
+            android:name="com.edmond.jimi.component.FileDialog"
+            android:configChanges="orientation|keyboardHidden"
+            android:screenOrientation="portrait"
+            android:theme="@android:style/Theme.Holo.Light.Dialog"
+            android:label="@string/title_activity_config"/>
+    </application>
+
+</manifest>
