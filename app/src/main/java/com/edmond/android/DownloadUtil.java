@@ -1,12 +1,26 @@
 package com.edmond.android;
 
+import android.os.Environment;
+
+import org.apache.http.HttpEntity;
+import org.apache.http.HttpResponse;
+import org.apache.http.client.ClientProtocolException;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.impl.client.DefaultHttpClient;
+
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+
 /**
  * Created by apple on 15/8/26.
  * http://blog.csdn.net/xjanker2/article/details/6303937
  */
 public class DownloadUtil {
     void downFile(final String url) {
-        pBar.show();
+//        pBar.show();
         new Thread() {
             public void run() {
                 HttpClient client = new DefaultHttpClient();
@@ -20,8 +34,7 @@ public class DownloadUtil {
                     FileOutputStream fileOutputStream = null;
                     if (is != null) {
                         File file = new File(
-                                Environment.getExternalStorageDirectory(),
-                                Config.UPDATE_SAVENAME);
+                                Environment.getExternalStorageDirectory(),"");
                         fileOutputStream = new FileOutputStream(file);
                         byte[] buf = new byte[1024];
                         int ch = -1;
@@ -37,7 +50,7 @@ public class DownloadUtil {
                     if (fileOutputStream != null) {
                         fileOutputStream.close();
                     }
-                    down();
+//                    down();
                 } catch (ClientProtocolException e) {
                     e.printStackTrace();
                 } catch (IOException e) {
@@ -47,19 +60,19 @@ public class DownloadUtil {
         }.start();
     }
 
-    void down() {
-        handler.post(new Runnable() {
-            public void run() {
-                pBar.cancel();
-                update();
-            }
-        });
-    }
-    void update() {
-        Intent intent = new Intent(Intent.ACTION_VIEW);
-        intent.setDataAndType(Uri.fromFile(new File(Environment
-                        .getExternalStorageDirectory(), Config.UPDATE_SAVENAME)),
-                "application/vnd.android.package-archive");
-        startActivity(intent);
-    }
+//    void down() {
+//        handler.post(new Runnable() {
+//            public void run() {
+//                pBar.cancel();
+//                update();
+//            }
+//        });
+//    }
+//    void update() {
+//        Intent intent = new Intent(Intent.ACTION_VIEW);
+//        intent.setDataAndType(Uri.fromFile(new File(Environment
+//                        .getExternalStorageDirectory(), Config.UPDATE_SAVENAME)),
+//                "application/vnd.android.package-archive");
+//        startActivity(intent);
+//    }
 }
