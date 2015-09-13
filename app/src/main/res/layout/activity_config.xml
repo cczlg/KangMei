@@ -10,7 +10,6 @@
             android:layout_width="match_parent"
             android:layout_height="80dip"
             android:text="确定" />
-	
     <TextView
         android:id="@+id/textViewSalsman"
         android:layout_width="wrap_content"
@@ -25,6 +24,20 @@
         android:ems="10" >
 
         <requestFocus />
+    </EditText>
+
+    <TextView
+        android:id="@+id/textViewCompany"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="公司名称："
+        android:textAppearance="?android:attr/textAppearanceMedium" />
+
+    <EditText
+        android:id="@+id/txtCompany"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:ems="10" >
     </EditText>
 
     <TextView

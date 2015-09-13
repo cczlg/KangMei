@@ -31,6 +31,8 @@ import android.view.WindowManager;
 import android.view.inputmethod.EditorInfo;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemSelectedListener;
+import android.widget.ArrayAdapter;
+import android.widget.AutoCompleteTextView;
 import android.widget.BaseAdapter;
 import android.widget.Button;
 import android.widget.EditText;
@@ -39,7 +41,10 @@ import android.widget.ImageView;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.TextView.OnEditorActionListener;
+import android.widget.Toast;
 
+import com.edmond.jimi.Constants;
+import com.edmond.jimi.entity.Customer;
 import com.edmond.jimi.util.DBHelper;
 import com.edmond.jimi.KangmeiApplication;
 import com.edmond.jimi.util.PrefrenceTool;
@@ -61,6 +66,8 @@ public class OrderActivity extends Activity {
     Button btnOk;
     Button btnCancel;
     int imgWidth = 250;
+    private AutoCompleteTextView txtCustomer;
+    private EditText txtId;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -68,14 +75,26 @@ public class OrderActivity extends Activity {
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON,
                 WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         setContentView(R.layout.activity_order);
-        String title = PrefrenceTool.getStringValue("kangmei", "apptitle",
-                getApplication());
-        if (title == null || title.length() == 0) {
-            title = getResources().getString(R.string.title_activity_customer);
-        } else {
-            title = title + "--订单";
-        }
-        setTitle(title);
+
+        txtId=(EditText)findViewById(R.id.txtId);
+        String customers[] = DBHelper.getInstance(
+                (KangmeiApplication) getApplication()).getCustomerNames();
+        txtCustomer = (AutoCompleteTextView) findViewById(R.id.txtCustomer);
+        ArrayAdapter<String> aa = new ArrayAdapter<String>(this,
+                android.R.layout.simple_dropdown_item_1line, customers);
+        txtCustomer.setAdapter(aa);
+        txtCustomer.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+
+            @Override
+            public void onItemClick(AdapterView<?> arg0, View arg1, int arg2,
+                                    long arg3) {
+                Customer c = DBHelper.getInstance(
+                        (KangmeiApplication) getApplication()).getCustomer(
+                        txtCustomer.getText().toString());
+                txtId.setText(String.valueOf(c.id));
+            }
+        });
+
 
         WindowManager manage = getWindowManager();
         Display display = manage.getDefaultDisplay();
@@ -83,13 +102,13 @@ public class OrderActivity extends Activity {
         int screenWidth = display.getWidth();
         imgWidth = screenWidth / 3 - 35;
         Intent intent = getIntent();
-        operate = intent.getStringExtra("operate");
-        if ("modify".equals(operate)
+        operate = intent.getStringExtra(Constants.OPERATE);
+        if (Constants.OPERATE_MODIFY.equals(operate)
                 && intent.getStringExtra("orderid") != null) {
             list = DBHelper
                     .getInstance((KangmeiApplication) this.getApplication())
                     .genOrderItemListForModify(intent.getStringExtra("orderid"));
-        } else if ("new".equals(operate) || "view".equals(operate)) {
+        } else if (Constants.OPERATE_NEW.equals(operate) || Constants.OPERATE_VIEW.equals(operate)) {
             list = DBHelper.getInstance(
                     (KangmeiApplication) this.getApplication())
                     .genOrderItemList();
@@ -124,11 +143,16 @@ public class OrderActivity extends Activity {
         gd2 = new GestureDetector(this, new DetailGestureListener());
 
         btnOk = (Button) findViewById(R.id.btnOk);
-        if ("view".equals(operate))
+        if (Constants.OPERATE_VIEW.equals(operate))
             btnOk.setVisibility(View.GONE);
         btnOk.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                if(txtCustomer.getText()==null || txtCustomer.getText().length()<=0){
+                    Toast.makeText(OrderActivity.this, R.string.require_customer_name,
+                            Toast.LENGTH_LONG).show();
+                    return;
+                }
                 boolean needSave = false;
                 for (OrderItem item : adapter.list) {
                     if (item.quantity > 0) {
@@ -248,22 +272,25 @@ public class OrderActivity extends Activity {
     private boolean save() {
         Order order = new Order();
         Intent intent = getIntent();
-        operate = intent.getStringExtra("operate");
-        if ("modify".equals(operate)
+        operate = intent.getStringExtra(Constants.OPERATE);
+        if (Constants.OPERATE_MODIFY.equals(operate)
                 && intent.getStringExtra("orderid") != null) {
             order = DBHelper.getInstance((KangmeiApplication) getApplication())
                     .getOrderHead(intent.getStringExtra("orderid"));
         } else {
-            order.customer = getIntent().getExtras().getString("customerid");
+            order.customer = (txtId.getText() == null || txtId.getText().length() == 0) ? "0"
+                    : txtId.getText().toString();
             order.orderTime = new Date();
             order.code = "No."
                     + (new SimpleDateFormat("yyyyMMddHHmmss")).format(new Date(
                     System.currentTimeMillis()));
             order.salesman = PrefrenceTool.getStringValue("kangmei",
                     "salesman", getApplicationContext());
-            order.address = getIntent().getExtras().getString("address");
-            order.customerphone = getIntent().getExtras().getString(
-                    "customerphone");
+            Customer c=DBHelper.getInstance((KangmeiApplication) getApplication())
+                    .getCustomer(txtCustomer.getText().toString());
+
+            order.address = c.address;
+            order.customerphone = c.phone;
         }
         for (OrderItem item : adapter.list) {
             if (item.quantity > 0)
@@ -272,7 +299,7 @@ public class OrderActivity extends Activity {
 
         if (order.items.size() > 0) {
 
-            if ("modify".equals(operate)) {
+            if (Constants.OPERATE_MODIFY.equals(operate)) {
                 DBHelper.getInstance((KangmeiApplication) getApplication())
                         .updateOrders(order);
             } else {

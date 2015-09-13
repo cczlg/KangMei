@@ -133,7 +133,7 @@ public class ProductActivity extends Activity {
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        getMenuInflater().inflate(R.menu.activity_product_menu, menu);
+        getMenuInflater().inflate(R.menu.menu_product, menu);
         return true;
     }
 

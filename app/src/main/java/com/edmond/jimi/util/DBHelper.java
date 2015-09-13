@@ -213,6 +213,7 @@ public class DBHelper {
                 .append(order.customer).append("'");
         Cursor rs = db.rawQuery(sql.toString(), null);
         rs.moveToFirst();
+        //如果已经有这个客户的订单，就合单
         if (!rs.isAfterLast()) {
             code = rs.getString(0);
             total = new BigDecimal(rs.getDouble(1));

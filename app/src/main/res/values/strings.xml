@@ -42,4 +42,19 @@
     <string name="warning">警告</string>
     <string name="success">操作成功</string>
     <string name="salesman_first">请先设置业务员信息</string>
+
+    <string name="require_customer_name">请输入客户名称</string>
+
+    <string name="title_order_list">订单</string>
+    <string name="title_customer">客户</string>
+    <string name="title_product">产品</string>
+    <string name="title_config">设置</string>
+
+    <string name="navigation_drawer_open">Open navigation drawer</string>
+    <string name="navigation_drawer_close">Close navigation drawer</string>
+
+    <string name="action_export"> 导出</string>
+
+    <string name="action_settings">设置</string>
+    <string name="action_order">开单</string>
 </resources>
