@@ -2,6 +2,7 @@ package com.edmond.jimi.activity;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 
@@ -16,6 +17,7 @@ import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.text.Editable;
+import android.text.TextUtils;
 import android.text.TextWatcher;
 import android.view.Display;
 import android.view.GestureDetector;
@@ -38,28 +40,32 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.GridView;
 import android.widget.ImageView;
+import android.widget.ListView;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.TextView.OnEditorActionListener;
 import android.widget.Toast;
 
 import com.edmond.jimi.Constants;
+import com.edmond.jimi.adapter.OrderItemSortAdapter;
+import com.edmond.jimi.component.ClearEditText;
+import com.edmond.jimi.component.SideBar;
 import com.edmond.jimi.entity.Customer;
+import com.edmond.jimi.entity.Product;
+import com.edmond.jimi.util.CharacterParser;
 import com.edmond.jimi.util.DBHelper;
 import com.edmond.jimi.KangmeiApplication;
+import com.edmond.jimi.util.PinyinComparator;
 import com.edmond.jimi.util.PrefrenceTool;
 import com.edmond.kangmei.R;
 import com.edmond.jimi.entity.Order;
 import com.edmond.jimi.entity.OrderItem;
 
 public class OrderActivity extends Activity {
+    private String orderid = null;
     GridView gridview;
     String imagePath;
-    ArrayList<OrderItem> list;
-    OrderProductItemAdapter adapter;
     String operate;
-    GestureDetector gd;
-    GestureDetector gd2;
     OnTouchListener touchListener;
     ImageView imgDetail;
     String imgName;
@@ -68,7 +74,97 @@ public class OrderActivity extends Activity {
     int imgWidth = 250;
     private AutoCompleteTextView txtCustomer;
     private EditText txtId;
+    
+    
+    /******************  华丽的分隔线   ***************************/
+    private ListView sortListView;
+    private SideBar sideBar;
+    /**
+     * 显示字母的TextView
+     */
+    private TextView dialog;
+    private OrderItemSortAdapter adapter;
+    /**
+     * 汉字转换成拼音的类
+     */
+    private CharacterParser characterParser;
+    private List<OrderItem> SourceDateList;
 
+    /**
+     * 根据拼音来排列ListView里面的数据类
+     */
+    private PinyinComparator pinyinComparator;
+
+    private void initViews() {
+        //实例化汉字转拼音类
+        characterParser = CharacterParser.getInstance();
+
+        pinyinComparator = new PinyinComparator();
+
+        sideBar = (SideBar)  findViewById(R.id.sidebar);
+        dialog = (TextView)  findViewById(R.id.dialog);
+        sideBar.setTextView(dialog);
+
+        //设置右侧触摸监听
+        sideBar.setOnTouchingLetterChangedListener(new SideBar.OnTouchingLetterChangedListener() {
+
+            @Override
+            public void onTouchingLetterChanged(String s) {
+                //该字母首次出现的位置
+                int position = adapter.getPositionForSection(s.charAt(0));
+                if(position != -1){
+                    sortListView.setSelection(position);
+                }
+
+            }
+        });
+
+        sortListView = (ListView)  findViewById(R.id.orderItemList);
+        sortListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view,
+                                    int position, long id) {
+                //这里要利用adapter.getItem(position)来获取当前position所对应的对象
+                Toast.makeText( getApplication(), ((Customer) adapter.getItem(position)).name, Toast.LENGTH_SHORT).show();
+            }
+        });
+
+        SourceDateList = filledData(getOrderItems());
+
+        // 根据a-z进行排序源数据
+        Collections.sort(SourceDateList, pinyinComparator);
+        adapter = new OrderItemSortAdapter(OrderActivity.this, SourceDateList);
+        sortListView.setAdapter(adapter);
+
+    }
+
+
+    /**
+     * 为ListView填充数据
+     * @param mSortList
+     * @return
+     */
+    private List<OrderItem> filledData(List<OrderItem> mSortList){
+
+        for(int i=0; i<mSortList.size(); i++){
+            OrderItem sortModel = mSortList.get(i);
+            //汉字转换成拼音
+            String pinyin = characterParser.getSelling(sortModel.product);
+            String sortString = pinyin.substring(0, 1).toUpperCase();
+
+            // 正则表达式，判断首字母是否是英文字母
+            if(sortString.matches("[A-Z]")){
+                sortModel.setSortLetters(sortString.toUpperCase());
+            }else{
+                sortModel.setSortLetters("#");
+            }
+        }
+        return mSortList;
+
+    }
+
+    /******************  华丽的分隔线   ***************************/
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -76,72 +172,26 @@ public class OrderActivity extends Activity {
                 WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         setContentView(R.layout.activity_order);
 
-        txtId=(EditText)findViewById(R.id.txtId);
-        String customers[] = DBHelper.getInstance(
-                (KangmeiApplication) getApplication()).getCustomerNames();
-        txtCustomer = (AutoCompleteTextView) findViewById(R.id.txtCustomer);
-        ArrayAdapter<String> aa = new ArrayAdapter<String>(this,
-                android.R.layout.simple_dropdown_item_1line, customers);
-        txtCustomer.setAdapter(aa);
-        txtCustomer.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-
-            @Override
-            public void onItemClick(AdapterView<?> arg0, View arg1, int arg2,
-                                    long arg3) {
-                Customer c = DBHelper.getInstance(
-                        (KangmeiApplication) getApplication()).getCustomer(
-                        txtCustomer.getText().toString());
-                txtId.setText(String.valueOf(c.id));
-            }
-        });
-
-
-        WindowManager manage = getWindowManager();
-        Display display = manage.getDefaultDisplay();
-        int screenHeight = display.getHeight();
-        int screenWidth = display.getWidth();
-        imgWidth = screenWidth / 3 - 35;
+        //init parameters
         Intent intent = getIntent();
         operate = intent.getStringExtra(Constants.OPERATE);
-        if (Constants.OPERATE_MODIFY.equals(operate)
-                && intent.getStringExtra("orderid") != null) {
-            list = DBHelper
-                    .getInstance((KangmeiApplication) this.getApplication())
-                    .genOrderItemListForModify(intent.getStringExtra("orderid"));
-        } else if (Constants.OPERATE_NEW.equals(operate) || Constants.OPERATE_VIEW.equals(operate)) {
-            list = DBHelper.getInstance(
-                    (KangmeiApplication) this.getApplication())
-                    .genOrderItemList();
-        }
+        orderid=intent.getStringExtra("orderid");
+
+        //init customer infomation
+        initCustomer();
+
+        initViews();
+        //init button
+        initButton();
+
         imagePath = ((KangmeiApplication) getApplication()).imagepath;
 
         imgDetail = (ImageView) findViewById(R.id.imgDetail);
         imgDetail.setLongClickable(true);
-        imgDetail.setOnTouchListener(new OnTouchListener() {
 
-            @Override
-            public boolean onTouch(View v, MotionEvent event) {
-                return gd2.onTouchEvent(event);
-            }
-        });
+    }
 
-        gridview = (GridView) findViewById(R.id.orderGridView);
-        // gridview.setColumnWidth(screenWidth/3-30);
-        adapter = new OrderProductItemAdapter(OrderActivity.this, list);
-        // 添加Item到网格中
-        gridview.setAdapter(adapter);
-
-        gd = new GestureDetector(this, new GestureListener());
-        touchListener = new OnTouchListener() {
-            @Override
-            public boolean onTouch(View v, MotionEvent event) {
-//				 imgName = ((KMImageView) v).getBitMapName();
-                v.findViewById(R.id.txtQuantity).requestFocus();
-                return gd.onTouchEvent(event);
-            }
-        };
-        gd2 = new GestureDetector(this, new DetailGestureListener());
-
+    private void initButton() {
         btnOk = (Button) findViewById(R.id.btnOk);
         if (Constants.OPERATE_VIEW.equals(operate))
             btnOk.setVisibility(View.GONE);
@@ -154,7 +204,7 @@ public class OrderActivity extends Activity {
                     return;
                 }
                 boolean needSave = false;
-                for (OrderItem item : adapter.list) {
+                for (OrderItem item : adapter.getList()) {
                     if (item.quantity > 0) {
                         needSave = true;
                         break;
@@ -183,22 +233,48 @@ public class OrderActivity extends Activity {
         });
     }
 
-    @Override
-    public boolean onTouchEvent(MotionEvent event) {
-        return gd.onTouchEvent(event);
+    private void initCustomer() {
+        txtId=(EditText)findViewById(R.id.txtId);
+        String customers[] = DBHelper.getInstance(
+                (KangmeiApplication) getApplication()).getCustomerNames();
+        txtCustomer = (AutoCompleteTextView) findViewById(R.id.txtCustomer);
+        ArrayAdapter<String> aa = new ArrayAdapter<String>(this,
+                android.R.layout.simple_dropdown_item_1line, customers);
+        txtCustomer.setAdapter(aa);
+        txtCustomer.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+
+            @Override
+            public void onItemClick(AdapterView<?> arg0, View arg1, int arg2,
+                                    long arg3) {
+                Customer c = DBHelper.getInstance(
+                        (KangmeiApplication) getApplication()).getCustomer(
+                        txtCustomer.getText().toString());
+                txtId.setText(String.valueOf(c.id));
+            }
+        });
     }
 
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        getMenuInflater().inflate(R.menu.activity_main_menu, menu);
-        return true;
+    private List<OrderItem> getOrderItems() {
+        List<OrderItem> list=null;
+        if (Constants.OPERATE_MODIFY.equals(operate)
+                && orderid != null) {
+            list = DBHelper
+                    .getInstance((KangmeiApplication) this.getApplication())
+                    .genOrderItemListForModify(orderid);
+        } else if (Constants.OPERATE_NEW.equals(operate) || Constants.OPERATE_VIEW.equals(operate)) {
+            list = DBHelper.getInstance(
+                    (KangmeiApplication) this.getApplication())
+                    .genOrderItemList();
+        }
+        return list;
     }
+
 
     @Override
     public void onBackPressed() {
         if (!"view".equals(operate)) {
             boolean needSave = false;
-            for (OrderItem item : adapter.list) {
+            for (OrderItem item : adapter.getList()) {
                 if (item.quantity > 0) {
                     needSave = true;
                     break;
@@ -274,9 +350,9 @@ public class OrderActivity extends Activity {
         Intent intent = getIntent();
         operate = intent.getStringExtra(Constants.OPERATE);
         if (Constants.OPERATE_MODIFY.equals(operate)
-                && intent.getStringExtra("orderid") != null) {
+                && orderid != null) {
             order = DBHelper.getInstance((KangmeiApplication) getApplication())
-                    .getOrderHead(intent.getStringExtra("orderid"));
+                    .getOrderHead(orderid);
         } else {
             order.customer = (txtId.getText() == null || txtId.getText().length() == 0) ? "0"
                     : txtId.getText().toString();
@@ -292,7 +368,7 @@ public class OrderActivity extends Activity {
             order.address = c.address;
             order.customerphone = c.phone;
         }
-        for (OrderItem item : adapter.list) {
+        for (OrderItem item : adapter.getList()) {
             if (item.quantity > 0)
                 order.items.add(item);
         }
@@ -308,256 +384,6 @@ public class OrderActivity extends Activity {
             }
         }
         return true;
-    }
-
-    public class OrderProductItemAdapter extends BaseAdapter {
-        private Activity context;
-        private List<OrderItem> list;
-        private int proposition;
-
-        // 这个用来保存 imageview 的引用
-        private ArrayList<ImageView> viewList = new ArrayList<ImageView>();
-        // 这个用来 保存 bitmap
-        private ArrayList<Bitmap> bitmapList = new ArrayList<Bitmap>();
-
-        public OrderProductItemAdapter(Activity context,
-                                       ArrayList<OrderItem> list2) {
-            this.context = context;
-            this.list = list2;
-        }
-
-        @Override
-        public View getView(final int position, View convertView,
-                            ViewGroup parent) {
-            LayoutInflater inflater = context.getLayoutInflater();
-            convertView = inflater.inflate(R.layout.order_product_item, null);
-
-            if (viewList.size() > 20)
-                recycleMemory(proposition, position);
-
-            OrderItem info = list.get(position);
-
-            // 用try catch 块包围住
-            try {
-                setImage(convertView, info, position);
-            } catch (OutOfMemoryError e) {
-                // 这里就是当内存泄露时 需要做的事情
-                e.printStackTrace();
-
-                // 释放内存资源
-                recycleMemory(proposition, position);
-
-                // 将刚才 发生异常没有执行的 代码 再重新执行一次
-                setImage(convertView, info, position);
-
-            }
-            proposition = position;
-            convertView.setOnTouchListener(touchListener);//无图代码
-            return convertView;
-        }
-
-        // 这里是关键
-        private void recycleMemory(int proPos, int curPos) {
-            // 一屏显示多少行 这里就设置为多少。不设也行 主要是用户体验好 不会将用户看到的图片设为默认图片
-            int showCount = 20;
-
-            //
-            for (int i = 0; i < viewList.size() - showCount; i++) {
-                ImageView iv = (ImageView) viewList.get(i);
-                /***
-                 * 这里是关键！ 将 imageview 设置一张默认的图片 ， 用于解决当释放bitmap的时候 还有其他 控件对他保持引用
-                 * 就不会发生trying to use a recycled bitmap异常了
-                 */
-                iv.setImageResource(R.drawable.ic_launcher);
-                // 从list中去除
-                viewList.remove(i);
-            }
-
-            if (proPos < curPos) {
-                while (bitmapList.size() > 20) {
-                    Bitmap bitmap = (Bitmap) bitmapList.get(0);
-                    // 这里就开始释放bitmap 所占的内存了
-                    if (bitmap != null && !bitmap.isRecycled()) {
-                        bitmap.recycle();
-                    }
-                    // 从list中去除
-                    bitmapList.remove(0);
-                }
-            } else {
-                for (int i = bitmapList.size() - 1; i > 20; i--) {
-                    Bitmap bitmap = (Bitmap) bitmapList.get(i);
-                    // 这里就开始释放bitmap 所占的内存了
-                    if (bitmap != null && !bitmap.isRecycled()) {
-                        bitmap.recycle();
-                    }
-                    // 从list中去除
-                    bitmapList.remove(i);
-                }
-            }
-        }
-
-        private void setImage(View convertView, OrderItem info,
-                              final int position) {
-
-            final TextView txtProduct = (TextView) convertView
-                    .findViewById(R.id.txtProduct);
-            txtProduct.setText(info.product);
-
-            TextView txtPrice = (TextView) convertView
-                    .findViewById(R.id.txtPrice);
-            txtPrice.setText(String.valueOf(info.price));
-
-            final EditText txtQty = (EditText) convertView
-                    .findViewById(R.id.txtQuantity);
-            if ("view".equals(operate))
-                txtQty.setVisibility(View.GONE);
-            txtQty.setSelectAllOnFocus(true);
-            txtQty.setText(String.valueOf(info.quantity));
-            if (info.quantity > 0) {
-                txtQty.setTextColor(Color.RED);
-                txtProduct.setTextColor(Color.RED);
-            }
-            txtQty.setImeOptions(EditorInfo.IME_ACTION_DONE);
-            txtQty.setOnFocusChangeListener(new OnFocusChangeListener() {
-                @Override
-                public void onFocusChange(View v, boolean hasFocus) {
-                    if (hasFocus == false && ((EditText) v).getText() != null
-                            && ((EditText) v).getText().length() > 0) {
-                        list.get(position).quantity = Integer
-                                .parseInt(((EditText) v).getText().toString());
-                        if (list.get(position).quantity > 0) {
-                            txtQty.setTextColor(Color.RED);
-                            txtProduct.setTextColor(Color.RED);
-                        }
-                    }
-                }
-            });
-            txtQty.setOnEditorActionListener(new OnEditorActionListener() {
-
-                @Override
-                public boolean onEditorAction(TextView v, int actionId,
-                                              KeyEvent event) {
-                    if (actionId == EditorInfo.IME_ACTION_DONE
-                            || (event != null && event.getKeyCode() == KeyEvent.KEYCODE_ENTER)) {
-                        if (((EditText) v).getText() != null
-                                && ((EditText) v).getText().length() > 0)
-                            list.get(position).quantity = Integer.parseInt(v
-                                    .getText().toString());
-                        if (list.get(position).quantity > 0) {
-                            txtQty.setTextColor(Color.RED);
-                            txtProduct.setTextColor(Color.RED);
-                        }
-                        return true;
-                    }
-                    return false;
-                }
-            });
-            txtQty.addTextChangedListener(new TextWatcher() {
-
-                @Override
-                public void onTextChanged(CharSequence s, int start,
-                                          int before, int count) {
-                    // TODO Auto-generated method stub
-
-                }
-
-                @Override
-                public void beforeTextChanged(CharSequence s, int start,
-                                              int count, int after) {
-                    // TODO Auto-generated method stub
-
-                }
-
-                @Override
-                public void afterTextChanged(Editable s) {
-                    if (txtQty.getText() == null
-                            || txtQty.getText().length() == 0) {
-                        txtQty.setText("0");
-                    }
-                    list.get(position).quantity = Integer.parseInt(txtQty
-                            .getText().toString());
-                    if (list.get(position).quantity > 0) {
-                        txtQty.setTextColor(Color.RED);
-                        txtProduct.setTextColor(Color.RED);
-                    }
-                }
-            });
-
-            final Spinner spFlag = (Spinner) convertView
-                    .findViewById(R.id.spanFlag);
-            if ("view".equals(operate))
-                spFlag.setVisibility(View.GONE);
-            spFlag.setSelection(info.flag);
-            spFlag.setOnItemSelectedListener(new OnItemSelectedListener() {
-
-                @Override
-                public void onItemSelected(AdapterView<?> arg0, View arg1,
-                                           int arg2, long arg3) {
-                    list.get(position).flag = spFlag.getSelectedItemPosition();
-                }
-
-                @Override
-                public void onNothingSelected(AdapterView<?> arg0) {
-
-                }
-            });
-            //有图代码开始
-//			 KMImageView imageView = (KMImageView) convertView
-//			 .findViewById(R.id.ItemImage);
-//			 imageView.setBitMapName(imagePath + info.image);
-//			 imageView.setLongClickable(true);
-//			 imageView.setOnTouchListener(touchListener);
-//			 imageView.setEditText(txtQty);
-//			 BitmapFactory.Options opt = new BitmapFactory.Options();
-//			 opt.outWidth = imgWidth;
-//			 opt.inJustDecodeBounds = true;
-//			 Bitmap bitmap = BitmapFactory.decodeFile(imagePath + info.image,
-//			 opt);
-//			 opt.inJustDecodeBounds = false;
-//			 int be = opt.outWidth / (imgWidth / 10);
-//			 if (be % 10 != 0) {
-//			 be += 10;
-//			 }
-//			 be /= 10;
-//			 if (be <= 0) {
-//			 be = 1;
-//			 }
-//			 opt.inSampleSize = be;
-//			 bitmap = BitmapFactory.decodeFile(imagePath + info.image, opt);
-//			 if (bitmap != null) {
-//			 int w = bitmap.getWidth();
-//			 int h = bitmap.getHeight();
-//			 h = h * imgWidth / w;
-//			 }
-//			
-//			 imageView.setImageBitmap(bitmap);
-//			
-//			 // 将这个控件 添加到 list里
-//			 viewList.add(imageView);
-//			 // 将要 释放的 bitmap也添加到list里
-//			 bitmapList.add(bitmap);//有图代码结束
-
-            if ("view".equals(operate)) {
-                txtQty.setVisibility(View.GONE);
-                spFlag.setVisibility(View.GONE);
-            }
-        }
-
-        @Override
-        public int getCount() {
-            return list.size();
-        }
-
-        @Override
-        public Object getItem(int position) {
-            return list.get(position);
-        }
-
-        @Override
-        public long getItemId(int position) {
-            return position;
-        }
-
     }
 
     public class GestureListener extends

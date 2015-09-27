@@ -5,5 +5,5 @@ public class Customer extends Entity {
 	public String phone;
 	public String address;
 	public double score;
-	
+
 }

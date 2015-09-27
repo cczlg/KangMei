@@ -6,12 +6,17 @@ import android.content.DialogInterface;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
+import android.text.Editable;
+import android.text.TextUtils;
+import android.text.TextWatcher;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.animation.BounceInterpolator;
+import android.widget.AdapterView;
+import android.widget.AdapterView.OnItemClickListener;
 import android.widget.ListView;
-import android.widget.SimpleAdapter;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.baoyz.swipemenulistview.SwipeMenu;
@@ -21,26 +26,174 @@ import com.baoyz.swipemenulistview.SwipeMenuListView;
 import com.edmond.jimi.Constants;
 import com.edmond.jimi.KangmeiApplication;
 import com.edmond.jimi.activity.MainActivity;
-import com.edmond.jimi.adapter.CustomerListAdapter;
+import com.edmond.jimi.adapter.CustomerSortAdapter;
+import com.edmond.jimi.component.ClearEditText;
+import com.edmond.jimi.component.SideBar;
 import com.edmond.jimi.entity.Customer;
 import com.edmond.jimi.listener.DataReloadListener;
+import com.edmond.jimi.util.CharacterParser;
 import com.edmond.jimi.util.DBHelper;
 import com.edmond.jimi.util.DensityUtils;
+import com.edmond.jimi.util.PinyinComparator;
 import com.edmond.kangmei.R;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
  * Created by apple on 15/9/6.
  */
 public class CustomerListFragment extends PlaceholderFragment implements DataReloadListener{
-    SimpleAdapter myCustomerAdapter;
-    ArrayList<HashMap<String, String>> myArrayList;
-    ListView customerList;
-    int REQUEST_CODE_NEW = 2012;
-    int REQUEST_CODE_MODIFY = 2013;
+
+    /******************  华丽的分隔线   ***************************/
+    private ListView sortListView;
+    private SideBar sideBar;
+    /**
+     * 显示字母的TextView
+     */
+    private TextView dialog;
+    private CustomerSortAdapter adapter;
+    private ClearEditText mClearEditText;
+    /**
+     * 汉字转换成拼音的类
+     */
+    private CharacterParser characterParser;
+    private List<Customer> SourceDateList;
+
+    /**
+     * 根据拼音来排列ListView里面的数据类
+     */
+    private PinyinComparator pinyinComparator;
+
+    private void initViews() {
+        //实例化汉字转拼音类
+        characterParser = CharacterParser.getInstance();
+
+        pinyinComparator = new PinyinComparator();
+
+        sideBar = (SideBar) getActivity().findViewById(R.id.sidebar);
+        dialog = (TextView) getActivity().findViewById(R.id.dialog);
+        sideBar.setTextView(dialog);
+
+        //设置右侧触摸监听
+        sideBar.setOnTouchingLetterChangedListener(new SideBar.OnTouchingLetterChangedListener() {
+
+            @Override
+            public void onTouchingLetterChanged(String s) {
+                //该字母首次出现的位置
+                int position = adapter.getPositionForSection(s.charAt(0));
+                if(position != -1){
+                    sortListView.setSelection(position);
+                }
+
+            }
+        });
+
+        sortListView = (ListView) getActivity().findViewById(R.id.customerListView);
+        sortListView.setOnItemClickListener(new OnItemClickListener() {
+
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view,
+                                    int position, long id) {
+                //这里要利用adapter.getItem(position)来获取当前position所对应的对象
+                Toast.makeText(getActivity().getApplication(), ((Customer)adapter.getItem(position)).name, Toast.LENGTH_SHORT).show();
+            }
+        });
+
+        SourceDateList = filledData(getCustomeList(null));
+
+        // 根据a-z进行排序源数据
+        Collections.sort(SourceDateList, pinyinComparator);
+        adapter = new CustomerSortAdapter(getActivity(), SourceDateList);
+        sortListView.setAdapter(adapter);
+
+
+        mClearEditText = (ClearEditText) getActivity().findViewById(R.id.filter_edit);
+
+        //根据输入框输入值的改变来过滤搜索
+        mClearEditText.addTextChangedListener(new TextWatcher() {
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                //当输入框里面的值为空，更新为原来的列表，否则为过滤数据列表
+                filterData(s.toString());
+            }
+
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count,
+                                          int after) {
+
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {
+            }
+        });
+    }
+
+
+    /**
+     * 为ListView填充数据
+     * @param mSortList
+     * @return
+     */
+    private List<Customer> filledData(List<Customer> mSortList){
+
+        for(int i=0; i<mSortList.size(); i++){
+            Customer sortModel = mSortList.get(i);
+            //汉字转换成拼音
+            String pinyin = characterParser.getSelling(sortModel.name);
+            String sortString = pinyin.substring(0, 1).toUpperCase();
+
+            // 正则表达式，判断首字母是否是英文字母
+            if(sortString.matches("[A-Z]")){
+                sortModel.setSortLetters(sortString.toUpperCase());
+            }else{
+                sortModel.setSortLetters("#");
+            }
+        }
+        return mSortList;
+
+    }
+
+    /**
+     * 根据输入框中的值来过滤数据并更新ListView
+     * @param filterStr
+     */
+    private void filterData(String filterStr) {
+        List<Customer> filterDateList = new ArrayList<Customer>();
+
+        if (TextUtils.isEmpty(filterStr)) {
+            filterDateList = SourceDateList;
+        } else {
+            filterDateList.clear();
+            for (Customer sortModel : SourceDateList) {
+                String name = sortModel.name;
+                if (name.toUpperCase().indexOf(
+                        filterStr.toString().toUpperCase()) != -1
+                        || characterParser.getSelling(name).toUpperCase()
+                        .startsWith(filterStr.toString().toUpperCase())) {
+                    filterDateList.add(sortModel);
+                }
+            }
+        }
+
+        // 根据a-z进行排序
+        Collections.sort(filterDateList, pinyinComparator);
+        adapter.updateListView(filterDateList);
+    }
+
+    private List<Customer> getCustomeList(String orderField) {
+        ArrayList<Customer> list = DBHelper.getInstance(
+                (KangmeiApplication) getActivity().getApplication()).getCustomers(
+                orderField);
+        return list;
+    }
+    /******************  华丽的分隔线   ***************************/
+
 
     public static CustomerListFragment newInstance(int sectionNumber) {
         CustomerListFragment fragment = new CustomerListFragment();
@@ -63,22 +216,11 @@ public class CustomerListFragment extends PlaceholderFragment implements DataRel
     @Override
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
+        initViews();
+        initSwipeMenus();
+    }
 
-        customerList = (ListView) getActivity().findViewById(R.id.customerListView);
-
-        myArrayList = new ArrayList<HashMap<String, String>>();
-
-        initArrayList(null);
-
-        myCustomerAdapter = new CustomerListAdapter(getActivity(), myArrayList,// 数据源
-                R.layout.customer_list_item, new String[] { "txtCustomer",
-                "txtPhone", "txtScore", "txtAddress" }, new int[] {
-                R.id.txtCustomer, R.id.txtPhone, R.id.txtScore,
-                R.id.txtAddress, });
-
-        customerList.setAdapter(myCustomerAdapter);
-//        customerList.setOnCreateContextMenuListener(CustomerActivity.this);
-
+    private void initSwipeMenus() {
         SwipeMenuListView customerListView= (SwipeMenuListView) getActivity().findViewById(R.id.customerListView);
         SwipeMenuCreator creator = new SwipeMenuCreator() {
 
@@ -122,18 +264,18 @@ public class CustomerListFragment extends PlaceholderFragment implements DataRel
         customerListView.setOnMenuItemClickListener(new SwipeMenuListView.OnMenuItemClickListener() {
             @Override
             public boolean onMenuItemClick(int position, SwipeMenu menu, int index) {
-                Map<String,String> item=null;
+                Customer item=null;
                 switch (index) {
                     case 0:
                         // 第一项被点击
-                        item= (Map<String, String>) myCustomerAdapter.getItem(position);
-                        CustomerDialogFragment customerDialog = CustomerDialogFragment.newInstance(Constants.OPERATE_MODIFY,item.get("txtCustomer"));
+                        item= (Customer) adapter.getItem(position);
+                        CustomerDialogFragment customerDialog = CustomerDialogFragment.newInstance(Constants.OPERATE_MODIFY,item.name);
                         customerDialog.setTargetFragment(CustomerListFragment.this,1234);
                         customerDialog.show(getFragmentManager(),"Customer_dialog");
                         break;
                     case 1:
-                        item= (Map<String, String>) myCustomerAdapter.getItem(position);
-                        deleteDialog(item.get("txtCustomer"));
+                        item= (Customer) adapter.getItem(position);
+                        deleteDialog(item.name);
                         break;
                 }
                 return true;
@@ -154,25 +296,11 @@ public class CustomerListFragment extends PlaceholderFragment implements DataRel
     }
 
 
-    private void initArrayList(String orderField) {
-        ArrayList<Customer> list = DBHelper.getInstance(
-                (KangmeiApplication) getActivity().getApplication()).getCustomers(
-                orderField);
-        myArrayList.clear();
-        for (Customer customer : list) {
-            HashMap<String, String> itemMap = new HashMap<String, String>();
-            itemMap.put("txtCustomer", customer.name);
-            itemMap.put("txtPhone", customer.phone);
-            itemMap.put("txtScore", String.valueOf(customer.score));
-            itemMap.put("txtAddress", customer.address);
-            myArrayList.add(itemMap);
-        }
-    }
-
     @Override
     public void reloadData() {
-        this.initArrayList(null);
-        customerList.setAdapter(myCustomerAdapter);
+        SourceDateList = filledData(getCustomeList(null));
+        Collections.sort(SourceDateList, pinyinComparator);
+        adapter.updateListView(SourceDateList);
     }
 
     protected void deleteDialog(final String customer) {
@@ -187,14 +315,7 @@ public class CustomerListFragment extends PlaceholderFragment implements DataRel
                 DBHelper.getInstance((KangmeiApplication) getActivity().getApplication())
                         .deleteCustomer(customer);
 
-                for(int i=myArrayList.size()-1;i>0;i--){
-                    HashMap<String, String> map=myArrayList.get(i);
-                    if (customer.equals(map.get("txtCustomer"))) {
-                        myArrayList.remove(i);
-                        break;
-                    }
-                }
-                myCustomerAdapter.notifyDataSetChanged();
+                reloadData();
                 dialog.dismiss();
             }
         });

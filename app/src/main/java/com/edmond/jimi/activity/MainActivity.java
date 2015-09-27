@@ -194,7 +194,7 @@ public class MainActivity extends AppCompatActivity
         }
     }
 
-    public void order(){
+    private void order(){
         String salesman = PrefrenceTool.getStringValue("kangmei",
                 "salesman", getApplicationContext());
         if (salesman == null || salesman.length() <= 0) {
@@ -207,7 +207,7 @@ public class MainActivity extends AppCompatActivity
         }
     }
 
-    public void export(){
+    private void export(){
         AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
         builder.setMessage("确定要导出excel？ ");
         builder.setTitle("提示");

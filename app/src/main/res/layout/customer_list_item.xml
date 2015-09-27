@@ -5,7 +5,24 @@
     android:layout_height="match_parent"
     android:orientation="vertical" >
 
+    <TextView
+        android:id="@+id/customer_catalog"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="#e5e5e5"
+        android:paddingBottom="5dp"
+        android:paddingLeft="10dp"
+        android:paddingTop="5dp"
+        android:text="A"
+        android:textSize="18sp" />
+
     <LinearLayout
+        android:id="@+id/customer_detail"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical" >
+    <LinearLayout
+        android:id="@+id/customer_detail_line1"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:padding="5px" >
@@ -75,5 +92,5 @@
             android:textColor="#787878" />
 
     </LinearLayout>
-
+    </LinearLayout>
 </LinearLayout>

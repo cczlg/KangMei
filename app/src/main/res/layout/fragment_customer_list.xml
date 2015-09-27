@@ -3,14 +3,47 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@drawable/main"
-    android:orientation="horizontal" >
+    android:orientation="vertical">
 
-    <com.baoyz.swipemenulistview.SwipeMenuListView
-        android:id="@+id/customerListView"
+    <com.edmond.jimi.component.ClearEditText
+        android:id="@+id/filter_edit"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
-        android:layout_weight="2" >
+        android:layout_marginTop="5dip"
+        android:background="@drawable/search_bar_edit_selector"
+        android:drawableLeft="@drawable/search_bar_icon_normal"
+        android:hint="请输入关键字"
+        android:singleLine="true"
+        android:textSize="15.0dip" />
 
-    </com.baoyz.swipemenulistview.SwipeMenuListView>
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@color/ripple_material_dark">
 
+        <com.baoyz.swipemenulistview.SwipeMenuListView
+            android:id="@+id/customerListView"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:layout_weight="2">
+
+        </com.baoyz.swipemenulistview.SwipeMenuListView>
+
+        <TextView
+            android:id="@+id/dialog"
+            android:layout_width="80.0dip"
+            android:layout_height="80.0dip"
+            android:layout_gravity="center"
+            android:background="@drawable/show_head_toast_bg"
+            android:gravity="center"
+            android:textColor="#ffffffff"
+            android:textSize="30.0dip"
+            android:visibility="invisible" />
+
+        <com.edmond.jimi.component.SideBar
+            android:id="@+id/sidebar"
+            android:layout_width="30.0dip"
+            android:layout_height="fill_parent"
+            android:layout_gravity="right|center" />
+    </FrameLayout>
 </LinearLayout>

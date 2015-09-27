@@ -90,6 +90,8 @@ public class OrderListFragment extends PlaceholderFragment implements DataReload
         txtOrderCount.setText(String.valueOf(groups.size()));
         txtTotal.setText(String.valueOf(total));
         txtTotalProfit.setText(String.valueOf(totalProfit));
+
+
     }
 
     @Override

@@ -6,12 +6,18 @@ import android.content.DialogInterface;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
+import android.text.Editable;
+import android.text.TextUtils;
+import android.text.TextWatcher;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.animation.BounceInterpolator;
+import android.widget.AdapterView;
 import android.widget.EditText;
 import android.widget.ListView;
+import android.widget.TextView;
+import android.widget.Toast;
 
 import com.baoyz.swipemenulistview.SwipeMenu;
 import com.baoyz.swipemenulistview.SwipeMenuCreator;
@@ -20,15 +26,23 @@ import com.baoyz.swipemenulistview.SwipeMenuListView;
 import com.edmond.jimi.Constants;
 import com.edmond.jimi.KangmeiApplication;
 import com.edmond.jimi.activity.MainActivity;
+import com.edmond.jimi.adapter.CustomerSortAdapter;
 import com.edmond.jimi.adapter.ProductListAdapter;
+import com.edmond.jimi.adapter.ProductSortAdapter;
+import com.edmond.jimi.component.ClearEditText;
+import com.edmond.jimi.component.SideBar;
+import com.edmond.jimi.entity.Customer;
 import com.edmond.jimi.entity.Product;
 import com.edmond.jimi.listener.DataReloadListener;
+import com.edmond.jimi.util.CharacterParser;
 import com.edmond.jimi.util.DBHelper;
 import com.edmond.jimi.util.DensityUtils;
+import com.edmond.jimi.util.PinyinComparator;
 import com.edmond.jimi.util.PrefrenceTool;
 import com.edmond.kangmei.R;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -36,13 +50,156 @@ import java.util.Map;
  * Created by apple on 15/9/6.
  */
 public class ProductListFragment extends PlaceholderFragment implements DataReloadListener{
-    int REQUEST_CODE = 2013;
-    ArrayList<Product> list;
+//    ArrayList<Product> list;
     String imagePath;
-    ProductListAdapter adapter;
+//    ProductListAdapter adapter;
     ListView productList;
 
-    private int REQUEST_CODE_MODIFY;
+    /******************  华丽的分隔线   ***************************/
+    private ListView sortListView;
+    private SideBar sideBar;
+    /**
+     * 显示字母的TextView
+     */
+    private TextView dialog;
+    private ProductSortAdapter adapter;
+    private ClearEditText mClearEditText;
+    /**
+     * 汉字转换成拼音的类
+     */
+    private CharacterParser characterParser;
+    private List<Product> SourceDateList;
+
+    /**
+     * 根据拼音来排列ListView里面的数据类
+     */
+    private PinyinComparator pinyinComparator;
+
+    private void initViews() {
+        //实例化汉字转拼音类
+        characterParser = CharacterParser.getInstance();
+
+        pinyinComparator = new PinyinComparator();
+
+        sideBar = (SideBar) getActivity().findViewById(R.id.sidebar);
+        dialog = (TextView) getActivity().findViewById(R.id.dialog);
+        sideBar.setTextView(dialog);
+
+        //设置右侧触摸监听
+        sideBar.setOnTouchingLetterChangedListener(new SideBar.OnTouchingLetterChangedListener() {
+
+            @Override
+            public void onTouchingLetterChanged(String s) {
+                //该字母首次出现的位置
+                int position = adapter.getPositionForSection(s.charAt(0));
+                if(position != -1){
+                    sortListView.setSelection(position);
+                }
+
+            }
+        });
+
+        sortListView = (ListView) getActivity().findViewById(R.id.productListView);
+        sortListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view,
+                                    int position, long id) {
+                //这里要利用adapter.getItem(position)来获取当前position所对应的对象
+                Toast.makeText(getActivity().getApplication(), ((Customer) adapter.getItem(position)).name, Toast.LENGTH_SHORT).show();
+            }
+        });
+
+        SourceDateList = filledData(getProductList(null));
+
+        // 根据a-z进行排序源数据
+        Collections.sort(SourceDateList, pinyinComparator);
+        adapter = new ProductSortAdapter(getActivity(), SourceDateList);
+        sortListView.setAdapter(adapter);
+
+
+        mClearEditText = (ClearEditText) getActivity().findViewById(R.id.filter_edit);
+
+        //根据输入框输入值的改变来过滤搜索
+        mClearEditText.addTextChangedListener(new TextWatcher() {
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                //当输入框里面的值为空，更新为原来的列表，否则为过滤数据列表
+                filterData(s.toString());
+            }
+
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count,
+                                          int after) {
+
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {
+            }
+        });
+    }
+
+
+    /**
+     * 为ListView填充数据
+     * @param mSortList
+     * @return
+     */
+    private List<Product> filledData(List<Product> mSortList){
+
+        for(int i=0; i<mSortList.size(); i++){
+            Product sortModel = mSortList.get(i);
+            //汉字转换成拼音
+            String pinyin = characterParser.getSelling(sortModel.product);
+            String sortString = pinyin.substring(0, 1).toUpperCase();
+
+            // 正则表达式，判断首字母是否是英文字母
+            if(sortString.matches("[A-Z]")){
+                sortModel.setSortLetters(sortString.toUpperCase());
+            }else{
+                sortModel.setSortLetters("#");
+            }
+        }
+        return mSortList;
+
+    }
+
+    /**
+     * 根据输入框中的值来过滤数据并更新ListView
+     * @param filterStr
+     */
+    private void filterData(String filterStr) {
+        List<Product> filterDateList = new ArrayList<Product>();
+
+        if (TextUtils.isEmpty(filterStr)) {
+            filterDateList = SourceDateList;
+        } else {
+            filterDateList.clear();
+            for (Product sortModel : SourceDateList) {
+                String name = sortModel.product;
+                if (name.toUpperCase().indexOf(
+                        filterStr.toString().toUpperCase()) != -1
+                        || characterParser.getSelling(name).toUpperCase()
+                        .startsWith(filterStr.toString().toUpperCase())) {
+                    filterDateList.add(sortModel);
+                }
+            }
+        }
+
+        // 根据a-z进行排序
+        Collections.sort(filterDateList, pinyinComparator);
+        adapter.updateListView(filterDateList);
+    }
+
+    private List<Product> getProductList(String orderField) {
+        ArrayList<Product> list = DBHelper.getInstance((KangmeiApplication) getActivity().getApplication())
+                .getProducts();
+        return list;
+    }
+    /******************  华丽的分隔线   ***************************/
+
 
     public static ProductListFragment newInstance(int sectionNumber) {
         ProductListFragment fragment = new ProductListFragment();
@@ -69,7 +226,9 @@ public class ProductListFragment extends PlaceholderFragment implements DataRelo
 
         productList = (ListView) getActivity().findViewById(R.id.productListView);
 
-        initListView();
+        initViews();
+        initSwipeMenus();
+
     }
 
     @Override
@@ -106,14 +265,7 @@ public class ProductListFragment extends PlaceholderFragment implements DataRelo
 
     }
 
-    private void initListView(){
-        list = DBHelper.getInstance((KangmeiApplication) getActivity().getApplication())
-                .getProducts();
-
-        adapter = new ProductListAdapter(getActivity(), list);
-
-        productList.setAdapter(adapter);
-//        productList.setOnCreateContextMenuListener(getActivity());
+    private void initSwipeMenus(){
 
         SwipeMenuListView productListView= (SwipeMenuListView) getActivity().findViewById(R.id.productListView);
         SwipeMenuCreator creator = new SwipeMenuCreator() {
@@ -183,6 +335,8 @@ public class ProductListFragment extends PlaceholderFragment implements DataRelo
     }
     @Override
     public void reloadData() {
-        initListView();
+        SourceDateList = filledData(getProductList(null));
+        Collections.sort(SourceDateList, pinyinComparator);
+        adapter.updateListView(SourceDateList);
     }
 }
