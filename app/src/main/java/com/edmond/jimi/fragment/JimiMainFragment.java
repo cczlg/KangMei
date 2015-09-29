@@ -5,6 +5,7 @@ import android.content.SharedPreferences;
 import android.content.res.Configuration;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
+import android.support.annotation.NonNull;
 import android.support.v4.app.ActionBarDrawerToggle;
 import android.support.v4.app.Fragment;
 import android.support.v4.view.GravityCompat;
@@ -18,11 +19,15 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
 import android.widget.ListView;
-import android.widget.Toast;
+import android.widget.SimpleAdapter;
 
 import com.edmond.kangmei.R;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Fragment used for managing interactions for and presentation of a navigation drawer.
@@ -99,19 +104,26 @@ public class JimiMainFragment extends Fragment {
                 selectItem(position);
             }
         });
-        mDrawerListView.setAdapter(new ArrayAdapter<String>(
-                getActionBar().getThemedContext(),
-                android.R.layout.simple_list_item_activated_1,
-                android.R.id.text1,
-                new String[]{
-                        getString(R.string.title_order_list),
-                        getString(R.string.title_customer),
-                        getString(R.string.title_product),
-                        getString(R.string.title_config),
-                }));
+
+        List<Map<String, String>> items = getMenuItems();
+
+        SimpleAdapter drawerAdapter=new SimpleAdapter(getActionBar().getThemedContext(),items,R.layout.drawer_list_item,
+                new String[]{"icon","text"},new int[]{R.id.drawer_item_icon,R.id.drawer_item_text});
+        mDrawerListView.setAdapter(drawerAdapter);
+//        mDrawerListView.setAdapter(new ArrayAdapter<String>(
+//                getActionBar().getThemedContext(),
+//                android.R.layout.simple_list_item_activated_1,
+//                android.R.id.text1,
+//                new String[]{
+//                        getString(R.string.title_order_list),
+//                        getString(R.string.title_customer),
+//                        getString(R.string.title_product),
+//                        getString(R.string.title_config),
+//                }));
         mDrawerListView.setItemChecked(mCurrentSelectedPosition, true);
         return mDrawerListView;
     }
+
 
     public boolean isDrawerOpen() {
         return mDrawerLayout != null && mDrawerLayout.isDrawerOpen(mFragmentContainerView);
@@ -281,5 +293,31 @@ public class JimiMainFragment extends Fragment {
          * Called when an item in the navigation drawer is selected.
          */
         void onNavigationDrawerItemSelected(int position);
+    }
+
+
+    @NonNull
+    private List<Map<String, String>> getMenuItems() {
+        List<Map<String,String>> items=new ArrayList<Map<String, String>>();
+        Map<String,String> item=new HashMap<String,String>();
+        item.put("icon",Integer.toString(R.drawable.icon_order));
+        item.put("text",getString(R.string.title_order_list));
+        items.add(item);
+
+        item=new HashMap<String,String>();
+        item.put("icon",Integer.toString(R.drawable.icon_customer));
+        item.put("text",getString(R.string.title_customer));
+        items.add(item);
+
+        item=new HashMap<String,String>();
+        item.put("icon",Integer.toString(R.drawable.icon_product));
+        item.put("text",getString(R.string.title_product));
+        items.add(item);
+
+        item=new HashMap<String,String>();
+        item.put("icon",Integer.toString(R.drawable.icon_config));
+        item.put("text",getString(R.string.title_config));
+        items.add(item);
+        return items;
     }
 }

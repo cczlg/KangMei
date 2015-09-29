@@ -14,7 +14,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.animation.BounceInterpolator;
 import android.widget.AdapterView;
-import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -26,25 +25,20 @@ import com.baoyz.swipemenulistview.SwipeMenuListView;
 import com.edmond.jimi.Constants;
 import com.edmond.jimi.KangmeiApplication;
 import com.edmond.jimi.activity.MainActivity;
-import com.edmond.jimi.adapter.CustomerSortAdapter;
-import com.edmond.jimi.adapter.ProductListAdapter;
 import com.edmond.jimi.adapter.ProductSortAdapter;
 import com.edmond.jimi.component.ClearEditText;
 import com.edmond.jimi.component.SideBar;
-import com.edmond.jimi.entity.Customer;
 import com.edmond.jimi.entity.Product;
 import com.edmond.jimi.listener.DataReloadListener;
 import com.edmond.jimi.util.CharacterParser;
 import com.edmond.jimi.util.DBHelper;
 import com.edmond.jimi.util.DensityUtils;
 import com.edmond.jimi.util.PinyinComparator;
-import com.edmond.jimi.util.PrefrenceTool;
 import com.edmond.kangmei.R;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 
 /**
  * Created by apple on 15/9/6.
@@ -74,6 +68,17 @@ public class ProductListFragment extends PlaceholderFragment implements DataRelo
      * 根据拼音来排列ListView里面的数据类
      */
     private PinyinComparator pinyinComparator;
+
+    /******************  华丽的分隔线   ***************************/
+
+
+    public static ProductListFragment newInstance(int sectionNumber) {
+        ProductListFragment fragment = new ProductListFragment();
+        Bundle args = new Bundle();
+        args.putInt(ARG_SECTION_NUMBER, sectionNumber);
+        fragment.setArguments(args);
+        return fragment;
+    }
 
     private void initViews() {
         //实例化汉字转拼音类
@@ -106,7 +111,7 @@ public class ProductListFragment extends PlaceholderFragment implements DataRelo
             public void onItemClick(AdapterView<?> parent, View view,
                                     int position, long id) {
                 //这里要利用adapter.getItem(position)来获取当前position所对应的对象
-                Toast.makeText(getActivity().getApplication(), ((Customer) adapter.getItem(position)).name, Toast.LENGTH_SHORT).show();
+                Toast.makeText(getActivity().getApplication(), ((Product) adapter.getItem(position)).product, Toast.LENGTH_SHORT).show();
             }
         });
 
@@ -140,7 +145,6 @@ public class ProductListFragment extends PlaceholderFragment implements DataRelo
             }
         });
     }
-
 
     /**
      * 为ListView填充数据
@@ -197,16 +201,6 @@ public class ProductListFragment extends PlaceholderFragment implements DataRelo
         ArrayList<Product> list = DBHelper.getInstance((KangmeiApplication) getActivity().getApplication())
                 .getProducts();
         return list;
-    }
-    /******************  华丽的分隔线   ***************************/
-
-
-    public static ProductListFragment newInstance(int sectionNumber) {
-        ProductListFragment fragment = new ProductListFragment();
-        Bundle args = new Bundle();
-        args.putInt(ARG_SECTION_NUMBER, sectionNumber);
-        fragment.setArguments(args);
-        return fragment;
     }
 
     @Override
@@ -276,16 +270,16 @@ public class ProductListFragment extends PlaceholderFragment implements DataRelo
                 SwipeMenuItem openItem = new SwipeMenuItem(
                         getActivity().getApplicationContext());
                 // 设置背景
-                openItem.setBackground(new ColorDrawable(Color.rgb(0xC9, 0xC9,
-                        0xCE)));
+                openItem.setBackground(R.color.swipeMenuBackground);
                 // 设置宽度
                 openItem.setWidth(DensityUtils.dp2px(getActivity(), 90));
-                // 设置显示的文字
-                openItem.setTitle("Open");
-                // 设置文字大小
-                openItem.setTitleSize(18);
-                // 设置文字颜色
-                openItem.setTitleColor(Color.WHITE);
+//                // 设置显示的文字
+//                openItem.setTitle("Open");
+//                // 设置文字大小
+//                openItem.setTitleSize(18);
+//                // 设置文字颜色
+//                openItem.setTitleColor(Color.WHITE);
+                openItem.setIcon(R.drawable.icon_edit);
                 // 添加到菜单里
                 menu.addMenuItem(openItem);
 
@@ -293,12 +287,11 @@ public class ProductListFragment extends PlaceholderFragment implements DataRelo
                 SwipeMenuItem deleteItem = new SwipeMenuItem(
                         getActivity().getApplicationContext());
                 // 设置背景
-                deleteItem.setBackground(new ColorDrawable(Color.rgb(0xF9,
-                        0x3F, 0x25)));
+                deleteItem.setBackground(R.color.swipeMenuBackground);
                 // 设置宽度
                 deleteItem.setWidth(DensityUtils.dp2px(getActivity(), 90));
                 // 设置一个图标
-                deleteItem.setIcon(R.drawable.ic_action_search);
+                deleteItem.setIcon(R.drawable.icon_delete);
                 // 添加到菜单
                 menu.addMenuItem(deleteItem);
             }

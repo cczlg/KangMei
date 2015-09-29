@@ -6,6 +6,7 @@ import android.support.v4.app.DialogFragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.Window;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
@@ -50,6 +51,8 @@ public class CustomerDialogFragment  extends DialogFragment {
     {
         View view = inflater.inflate(R.layout.fragment_dialog_customer, container);
 
+//        getDialog().requestWindowFeature(Window.FEATURE_NO_TITLE);
+        getDialog().setTitle(R.string.title_customer);
 
         Bundle bundle=getArguments();
         mArgument=bundle.getString(ARGUMENT);

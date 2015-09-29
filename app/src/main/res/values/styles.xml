@@ -3,16 +3,15 @@
     <!-- Base application theme. -->
     <style name="AppTheme" parent="Theme.AppCompat.Light.DarkActionBar">
         <!-- Customize your theme here. -->
+        <item name="android:actionBarStyle">@style/MyActionBar</item>
+        <!--<item name="android:background">@color/background</item>-->
+
+        <!-- Support library compatibility -->
+        <item name="actionBarStyle">@style/MyActionBar</item>
+
+        <item name="android:activatedBackgroundIndicator">@drawable/list_activated_background</item>
     </style>
 
-    <style name="FullscreenTheme" parent="android:Theme.NoTitleBar">
-        <item name="android:windowContentOverlay">@null</item>
-        <item name="android:windowBackground">@null</item>
-        <item name="metaButtonBarStyle">@style/ButtonBar</item>
-        <item name="metaButtonBarButtonStyle">@style/ButtonBarButton</item>
-    </style>
-
-    <!-- Backward-compatible version of ?android:attr/buttonBarStyle -->
     <style name="ButtonBar">
         <item name="android:paddingLeft">2dp</item>
         <item name="android:paddingTop">5dp</item>
@@ -21,7 +20,14 @@
         <item name="android:background">@android:drawable/bottom_bar</item>
     </style>
 
-    <!-- Backward-compatible version of ?android:attr/buttonBarButtonStyle -->
     <style name="ButtonBarButton" />
 
+    <!-- ActionBar styles -->
+    <style name="MyActionBar"
+        parent="@style/Widget.AppCompat.Light.ActionBar.Solid.Inverse">
+        <item name="android:background">@color/barBackground</item>
+
+        <!-- Support library compatibility -->
+        <item name="background">@color/barBackground</item>
+    </style>
 </resources>

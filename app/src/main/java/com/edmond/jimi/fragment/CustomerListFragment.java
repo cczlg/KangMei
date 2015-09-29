@@ -230,16 +230,16 @@ public class CustomerListFragment extends PlaceholderFragment implements DataRel
                 SwipeMenuItem openItem = new SwipeMenuItem(
                         getActivity().getApplicationContext());
                 // 设置背景
-                openItem.setBackground(new ColorDrawable(Color.rgb(0xC9, 0xC9,
-                        0xCE)));
+                openItem.setBackground(R.color.swipeMenuBackground);
                 // 设置宽度
                 openItem.setWidth(DensityUtils.dp2px(getActivity(), 90));
-                // 设置显示的文字
-                openItem.setTitle("Open");
-                // 设置文字大小
-                openItem.setTitleSize(18);
-                // 设置文字颜色
-                openItem.setTitleColor(Color.WHITE);
+                openItem.setIcon(R.drawable.icon_edit);
+//                // 设置显示的文字
+//                openItem.setTitle("Open");
+//                // 设置文字大小
+//                openItem.setTitleSize(18);
+//                // 设置文字颜色
+//                openItem.setTitleColor(Color.WHITE);
                 // 添加到菜单里
                 menu.addMenuItem(openItem);
 
@@ -247,12 +247,11 @@ public class CustomerListFragment extends PlaceholderFragment implements DataRel
                 SwipeMenuItem deleteItem = new SwipeMenuItem(
                         getActivity().getApplicationContext());
                 // 设置背景
-                deleteItem.setBackground(new ColorDrawable(Color.rgb(0xF9,
-                        0x3F, 0x25)));
+                deleteItem.setBackground(R.color.swipeMenuBackground);
                 // 设置宽度
                 deleteItem.setWidth(DensityUtils.dp2px(getActivity(), 90));
                 // 设置一个图标
-                deleteItem.setIcon(R.drawable.ic_action_search);
+                deleteItem.setIcon(R.drawable.icon_delete);
                 // 添加到菜单
                 menu.addMenuItem(deleteItem);
             }

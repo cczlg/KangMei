@@ -6,6 +6,7 @@ import android.support.v4.app.DialogFragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.Window;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
@@ -51,6 +52,9 @@ public class ProductDialogFragment  extends DialogFragment {
                              Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_dialog_product, container);
 
+//        getDialog().requestWindowFeature(Window.FEATURE_NO_TITLE);
+        getDialog().setTitle(R.string.title_product);
+        setStyle(DialogFragment.STYLE_NORMAL,R.style.AppTheme);
 
         Bundle bundle = getArguments();
         mArgument = bundle.getString(ARGUMENT);

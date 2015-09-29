@@ -11,7 +11,6 @@ import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.widget.Toast;
 
 import com.edmond.jimi.Constants;
 import com.edmond.jimi.KangmeiApplication;
@@ -47,6 +46,7 @@ public class MainActivity extends AppCompatActivity
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        setTheme(R.style.AppTheme);
 
         //if not found apptitle in prefrences ,show setting dialog
         String title = PrefrenceTool.getStringValue("kangmei", "apptitle",

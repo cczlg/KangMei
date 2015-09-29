@@ -3,4 +3,32 @@
     <color name="black_overlay">#66000000</color>
     <color name="gray">#ffff0000</color>
 
+    <color name="background">#eaeaea</color>
+    <color name="barText">#fcfffe</color>
+    <color name="barBackground">#00a850</color>
+
+    <color name="menuText">#b9b9b9</color>
+    <color name="menuSpacer">#303030</color>
+    <color name="menuSelect">#464646</color>
+    <color name="menuBackground">#333333</color>
+    
+    <color name="listTitleTextDark">#282828</color>
+    <color name="listTitleTextGray">#8d8d8d</color>
+    <color name="listValueText">#ef8709</color>
+    <color name="listSpacer">#e5e5e5</color>
+
+    <color name="swipeMenuBackground">#f7a401</color>
+
+    <color name="sideBarText">#545454</color>
+
+    <color name="categoryBackground">#eaeaea</color>
+    <color name="categoryText">#9a9a9a</color>
+
+    <color name="detailTextDark">#292929</color>
+    <color name="detailTextGray">#8d8d8d</color>
+    <color name="detailBacktground">#ffffff</color>
+    <color name="detailSpacer">#d2d2d2</color>
+    <color name="detailButtonBackground">#f7a401</color>
+
+
 </resources>
